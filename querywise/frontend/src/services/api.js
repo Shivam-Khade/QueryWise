@@ -1,8 +1,12 @@
 import axios from 'axios'
 
 // Base URL for the FastAPI backend. Configurable via .env (VITE_API_URL)
-// so the frontend works whether the backend runs locally or in Docker.
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000'
+// Defaults to the deployed Render backend in production, or localhost in development.
+const API_BASE_URL =
+  import.meta.env.VITE_API_URL ||
+  (import.meta.env.PROD
+    ? 'https://querywise-backend.onrender.com'
+    : 'http://localhost:8000')
 
 const api = axios.create({
   baseURL: API_BASE_URL,
