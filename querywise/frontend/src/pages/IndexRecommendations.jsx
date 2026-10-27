@@ -61,21 +61,21 @@ export default function IndexRecommendations() {
             const key = `rec-${rec.id}`
             return (
               <Card key={rec.id}>
-                <div className="flex flex-wrap items-start justify-between gap-3">
-                  <div>
+                <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2 sm:gap-3">
+                  <div className="min-w-0 flex-1">
                     <p className="text-sm font-semibold text-slate-800">
-                      Table: <span className="code-font">{rec.table}</span>
+                      Table: <span className="code-font text-brand-600">{rec.table}</span>
                     </p>
                     <p className="text-xs text-slate-500 mt-1 max-w-xl">{rec.reason}</p>
                     <p className="code-font text-xs text-slate-400 mt-2 truncate max-w-xl">{rec.query_text}</p>
                   </div>
-                  <span className="shrink-0 text-xs font-semibold bg-emerald-50 text-emerald-700 px-2.5 py-1 rounded-full">
+                  <span className="self-start sm:self-auto shrink-0 text-xs font-semibold bg-emerald-50 text-emerald-700 px-2.5 py-1 rounded-full">
                     ~{rec.estimated_improvement}% faster (est.)
                   </span>
                 </div>
 
                 <div className="relative mt-3">
-                  <pre className="code-font text-xs bg-slate-900 text-slate-100 rounded-lg p-3 overflow-x-auto">
+                  <pre className="code-font text-xs bg-slate-900 text-slate-100 rounded-lg p-3 pr-10 overflow-x-auto whitespace-pre-wrap break-all sm:whitespace-pre sm:break-normal">
 {rec.index_sql}
                   </pre>
                   <button

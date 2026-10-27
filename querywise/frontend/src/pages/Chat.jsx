@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { MessageSquare, Plus, Trash2, Send, SearchCode, Database, Check, Copy } from 'lucide-react'
+import { MessageSquare, Plus, Trash2, Send, SearchCode, Database, Check, Copy, History, X } from 'lucide-react'
 import { chatGenerate, getChatHistory, deleteChatConversation, executeChatQuery } from '../services/api.js'
 import Card from '../components/Card.jsx'
 import { LoadingSpinner, ErrorBanner } from '../components/Feedback.jsx'
@@ -36,6 +36,7 @@ export default function Chat() {
   const [queryResult, setQueryResult] = useState(null);
   const [executing, setExecuting] = useState(false);
   const [chartTypeOverride, setChartTypeOverride] = useState(null);
+  const [showHistoryMobile, setShowHistoryMobile] = useState(false);
   
   const inputRef = useRef(null);
 
@@ -80,6 +81,7 @@ export default function Chat() {
     setActiveChat(null);
     setPrompt('');
     setError('');
+    setShowHistoryMobile(false);
     setTimeout(() => inputRef.current?.focus(), 100);
   }
 
@@ -135,16 +137,35 @@ export default function Chat() {
   }
 
   return (
-    <div className="flex h-[calc(100vh-6rem)] bg-white rounded-2xl border border-slate-200/60 shadow-sm shadow-slate-200/50 overflow-hidden">
-      {/* Sidebar */}
-      <div className="w-72 bg-slate-50 border-r border-slate-200 flex flex-col">
-        <div className="p-4 border-b border-slate-200">
+    <div className="flex h-[calc(100dvh-5.5rem)] md:h-[calc(100vh-6rem)] bg-white rounded-2xl border border-slate-200/60 shadow-sm shadow-slate-200/50 overflow-hidden relative">
+      {/* Mobile backdrop for chat history */}
+      {showHistoryMobile && (
+        <div
+          className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-30 md:hidden"
+          onClick={() => setShowHistoryMobile(false)}
+        />
+      )}
+
+      {/* History Sidebar - Desktop static / Mobile slide-over drawer */}
+      <div
+        className={`fixed md:static inset-y-0 left-0 z-40 md:z-auto w-72 bg-slate-50 border-r border-slate-200 flex flex-col transition-transform duration-300 ease-in-out ${
+          showHistoryMobile ? 'translate-x-0 shadow-2xl' : '-translate-x-full md:translate-x-0'
+        }`}
+      >
+        <div className="p-4 border-b border-slate-200 flex items-center justify-between gap-2">
           <button
             onClick={handleNewChat}
-            className="w-full flex items-center justify-center gap-2 bg-brand-600 hover:bg-brand-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+            className="flex-1 flex items-center justify-center gap-2 bg-brand-600 hover:bg-brand-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
           >
             <Plus className="w-4 h-4" />
             New Chat
+          </button>
+          <button
+            onClick={() => setShowHistoryMobile(false)}
+            className="p-2 text-slate-500 hover:bg-slate-200 rounded-lg md:hidden"
+            aria-label="Close history"
+          >
+            <X className="w-4 h-4" />
           </button>
         </div>
         <div className="flex-1 overflow-y-auto p-3 space-y-2">
@@ -157,6 +178,7 @@ export default function Chat() {
                 onClick={() => {
                   setActiveChat(chat);
                   setPrompt('');
+                  setShowHistoryMobile(false);
                 }}
                 className={`group cursor-pointer rounded-lg p-3 text-sm flex items-start justify-between gap-2 transition-colors ${
                   activeChat?.conversation_id === chat.conversation_id
@@ -186,18 +208,27 @@ export default function Chat() {
       {/* Main Chat Area */}
       <div className="flex-1 flex flex-col bg-white min-w-0">
         {/* Header */}
-        <div className="p-4 border-b border-slate-100 bg-white">
-          <h2 className="text-lg font-bold text-slate-800 flex items-center gap-2">
-            <MessageSquare className="w-5 h-5 text-brand-600" />
-            Natural Language to SQL
-          </h2>
-          <p className="text-sm text-slate-500">
-            Describe what you want to query in plain English. AI will generate the SQL.
-          </p>
+        <div className="p-3 sm:p-4 border-b border-slate-100 bg-white flex items-center justify-between gap-3">
+          <div className="min-w-0">
+            <h2 className="text-base sm:text-lg font-bold text-slate-800 flex items-center gap-2 truncate">
+              <MessageSquare className="w-5 h-5 text-brand-600 shrink-0" />
+              <span>Natural Language to SQL</span>
+            </h2>
+            <p className="text-xs sm:text-sm text-slate-500 truncate">
+              Describe what you want to query in plain English.
+            </p>
+          </div>
+          <button
+            onClick={() => setShowHistoryMobile(true)}
+            className="md:hidden flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-lg shrink-0 transition-colors"
+          >
+            <History className="w-3.5 h-3.5" />
+            <span>History</span>
+          </button>
         </div>
 
         {/* Content */}
-        <div className="flex-1 overflow-y-auto p-6">
+        <div className="flex-1 overflow-y-auto p-3 sm:p-6">
           {!activeChat && !loading && (
             <div className="h-full flex flex-col items-center justify-center text-center space-y-4 text-slate-500">
               <Database className="w-12 h-12 text-slate-300" />

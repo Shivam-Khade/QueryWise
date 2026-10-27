@@ -132,14 +132,14 @@ export default function DatabaseExplorer() {
           ) : (
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <Card title="Tables" className="lg:col-span-1">
-              <div className="space-y-1 max-h-[520px] overflow-y-auto">
+              <div className="space-y-1 max-h-[220px] sm:max-h-[520px] overflow-y-auto pr-1">
                 {tables.map((t) => (
                   <button
                     key={t.table_name}
                     onClick={() => selectTable(t.table_name)}
                     className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-left text-sm transition-colors ${
                       selected === t.table_name
-                        ? 'bg-brand-600 text-white'
+                        ? 'bg-brand-600 text-white shadow-sm'
                         : 'text-slate-700 hover:bg-slate-100'
                     }`}
                   >
@@ -159,8 +159,8 @@ export default function DatabaseExplorer() {
               {detail && !detailLoading && (
                 <>
                   <Card title={`Table: ${detail.table_name}`} subtitle={`${detail.row_count.toLocaleString()} rows`}>
-                    <div className="overflow-x-auto">
-                      <table className="w-full text-sm">
+                    <div className="overflow-x-auto -mx-5 px-5">
+                      <table className="w-full text-sm min-w-[440px]">
                         <thead>
                           <tr className="text-left text-xs text-slate-500 border-b border-slate-200">
                             <th className="py-2 pr-4 font-medium">Column</th>

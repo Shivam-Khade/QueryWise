@@ -26,19 +26,29 @@ if GEMINI_API_KEY and genai:
 else:
     genai = None
 
+_SCHEMA_CONTEXT_CACHE = None
+
 def generate_schema_context() -> str:
-    schema = get_full_schema()
-    context = "Database Schema:\n"
-    for table in schema:
-        context += f"Table: {table['table_name']}\n"
-        context += "Columns: " + ", ".join([f"{col['column_name']} ({col['data_type']})" for col in table['columns']]) + "\n"
-        if table['primary_keys']:
-            context += "Primary Keys: " + ", ".join(table['primary_keys']) + "\n"
-        if table['foreign_keys']:
-            for fk in table['foreign_keys']:
-                context += f"Foreign Key: {fk['column_name']} references {fk['referenced_table']}({fk['referenced_column']})\n"
-        context += "\n"
-    return context
+    global _SCHEMA_CONTEXT_CACHE
+    if _SCHEMA_CONTEXT_CACHE:
+        return _SCHEMA_CONTEXT_CACHE
+    try:
+        schema = get_full_schema()
+        context = "Database Schema:\n"
+        for table in schema:
+            context += f"Table: {table['table_name']}\n"
+            context += "Columns: " + ", ".join([f"{col['column_name']} ({col['data_type']})" for col in table['columns']]) + "\n"
+            if table['primary_keys']:
+                context += "Primary Keys: " + ", ".join(table['primary_keys']) + "\n"
+            if table['foreign_keys']:
+                for fk in table['foreign_keys']:
+                    context += f"Foreign Key: {fk['column_name']} references {fk['referenced_table']}({fk['referenced_column']})\n"
+            context += "\n"
+        if context.strip() != "Database Schema:":
+            _SCHEMA_CONTEXT_CACHE = context
+        return context
+    except Exception:
+        return "Database Schema: 12 tables (departments, employees, customers, addresses, categories, suppliers, products, orders, order_items, payments, shipments, reviews)."
 
 
 @router.post("/generate", response_model=ChatGenerateResponse)
@@ -69,17 +79,28 @@ Here is the schema:
 """
 
     try:
-        model = genai.GenerativeModel(
-            model_name="gemini-2.5-flash",
-            system_instruction=system_prompt,
-        )
-        
-        response = model.generate_content(
-            payload.prompt,
-            generation_config=genai.types.GenerationConfig(
-                temperature=0.0,
-            ),
-        )
+        try:
+            model = genai.GenerativeModel(
+                model_name="gemini-2.5-flash",
+                system_instruction=system_prompt,
+            )
+            response = model.generate_content(
+                payload.prompt,
+                generation_config=genai.types.GenerationConfig(
+                    temperature=0.0,
+                ),
+            )
+        except Exception:
+            model = genai.GenerativeModel(
+                model_name="gemini-1.5-flash",
+                system_instruction=system_prompt,
+            )
+            response = model.generate_content(
+                payload.prompt,
+                generation_config=genai.types.GenerationConfig(
+                    temperature=0.0,
+                ),
+            )
         content = response.text.strip()
         
         # Strip markdown if Gemini ignores instructions

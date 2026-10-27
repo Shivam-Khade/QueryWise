@@ -42,7 +42,7 @@ function PlanNode({ node, depth = 0 }) {
       </div>
 
       {node.children && node.children.length > 0 && (
-        <div className="ml-6 mt-2 pl-4 border-l-2 border-dashed border-slate-200 space-y-2">
+        <div className="ml-3 sm:ml-6 mt-2 pl-2 sm:pl-4 border-l-2 border-dashed border-slate-200 space-y-2">
           {node.children.map((child, idx) => (
             <PlanNode key={idx} node={child} depth={depth + 1} />
           ))}
@@ -55,7 +55,7 @@ function PlanNode({ node, depth = 0 }) {
 export default function PlanTree({ plan }) {
   if (!plan) return null
   return (
-    <div className="space-y-2">
+    <div className="space-y-2 overflow-x-auto pb-1">
       <PlanNode node={plan} />
     </div>
   )
