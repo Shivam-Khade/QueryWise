@@ -79,28 +79,36 @@ Here is the schema:
 """
 
     try:
-        try:
-            model = genai.GenerativeModel(
-                model_name="gemini-2.5-flash",
-                system_instruction=system_prompt,
-            )
-            response = model.generate_content(
-                payload.prompt,
-                generation_config=genai.types.GenerationConfig(
-                    temperature=0.0,
-                ),
-            )
-        except Exception:
-            model = genai.GenerativeModel(
-                model_name="gemini-1.5-flash",
-                system_instruction=system_prompt,
-            )
-            response = model.generate_content(
-                payload.prompt,
-                generation_config=genai.types.GenerationConfig(
-                    temperature=0.0,
-                ),
-            )
+        model_names = ["gemini-1.5-flash", "gemini-2.0-flash", "gemini-2.5-flash"]
+        response = None
+        last_model_err = None
+
+        for m_name in model_names:
+            try:
+                model = genai.GenerativeModel(
+                    model_name=m_name,
+                    system_instruction=system_prompt,
+                )
+                response = model.generate_content(
+                    payload.prompt,
+                    generation_config=genai.types.GenerationConfig(
+                        temperature=0.0,
+                    ),
+                )
+                if response:
+                    break
+            except Exception as err:
+                last_model_err = err
+                continue
+
+        if not response:
+            if "leaked" in str(last_model_err).lower() or "permission" in str(last_model_err).lower():
+                raise HTTPException(
+                    status_code=403,
+                    detail="Your Gemini API key was reported as leaked/revoked. Please generate a fresh key at aistudio.google.com/apikey and update it in Render."
+                )
+            raise last_model_err
+
         content = response.text.strip()
         
         # Strip markdown if Gemini ignores instructions
