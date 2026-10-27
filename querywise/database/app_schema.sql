@@ -52,6 +52,7 @@ CREATE TABLE query_analysis (
     issues          JSON DEFAULT '[]',      -- list[str]
     plan_tree       JSON DEFAULT '{}',      -- simplified plan tree for the UI
     raw_plan        JSON DEFAULT '{}',      -- raw EXPLAIN JSON (debug)
+    ai_explanation  TEXT,                   -- AI-generated analysis explanation
 
     created_at      TIMESTAMPTZ DEFAULT NOW()
 );
@@ -74,3 +75,21 @@ CREATE TABLE index_recommendations (
     status                  VARCHAR(32) DEFAULT 'suggested',  -- suggested / dismissed
     created_at              TIMESTAMPTZ DEFAULT NOW()
 );
+
+-- -----------------------------------------------------------------------------
+-- chat_conversations — Natural language query chat history
+-- -----------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS chat_conversations (
+    id              SERIAL PRIMARY KEY,
+    conversation_id VARCHAR(64) NOT NULL,
+    user_id         VARCHAR(64) NOT NULL,
+    prompt          TEXT NOT NULL,
+    generated_sql   TEXT NOT NULL,
+    explanation     TEXT,
+    chart_type      VARCHAR(32) DEFAULT 'table',
+    created_at      TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS ix_chat_conversation_id ON chat_conversations(conversation_id);
+CREATE INDEX IF NOT EXISTS ix_chat_user_id ON chat_conversations(user_id);
+

@@ -55,6 +55,14 @@ async def lifespan(app: FastAPI):
     # This is a simple MVP approach without migrations.
     Base.metadata.create_all(bind=engine)
 
+    # Automatically patch any missing columns on existing tables
+    try:
+        from sqlalchemy import text
+        with engine.begin() as conn:
+            conn.execute(text("ALTER TABLE query_analysis ADD COLUMN IF NOT EXISTS ai_explanation TEXT;"))
+    except Exception as e:
+        logger.warning("Could not run schema patch: %s", e)
+
     # Start background scheduler
     scheduler = start_scheduler()
 
@@ -115,12 +123,19 @@ async def unhandled_exception_handler(
         request.url.path
     )
 
+    origin = request.headers.get("origin")
+    headers = {}
+    if origin:
+        headers["Access-Control-Allow-Origin"] = origin
+        headers["Access-Control-Allow-Credentials"] = "true"
+
     return JSONResponse(
         status_code=500,
         content={
             "success": False,
             "error": "Something went wrong on our end. Please try again.",
         },
+        headers=headers,
     )
 
 
